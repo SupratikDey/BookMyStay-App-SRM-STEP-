@@ -13,7 +13,7 @@ class InvalidBookingValidator {
     public static void validate(String roomType, int roomsRequested, Map<String, Integer> inventory)
             throws InvalidBookingException {
 
-        // Validate room type
+        // Validate room 
         if (!inventory.containsKey(roomType)) {
             throw new InvalidBookingException("Invalid room type: " + roomType);
         }
