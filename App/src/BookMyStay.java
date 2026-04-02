@@ -3,41 +3,26 @@ import java.util.*;
 /**
  * Book My Stay App
  *
- * Demonstrates booking confirmation and room allocation
- * with uniqueness and inventory consistency.
+ * Demonstrates add-on service selection using
+ * Map + List (one-to-many relationship).
  *
  * @author SPD
- * @version 6.0
+ * @version 7.0
  */
 
-// ---------- RESERVATION ----------
-class Reservation {
-    String guestName;
-    String roomType;
+// ---------- SERVICE CLASS ----------
+class Service {
+    String name;
+    double cost;
 
-    public Reservation(String guestName, String roomType) {
-        this.guestName = guestName;
-        this.roomType = roomType;
-    }
-}
-
-// ---------- INVENTORY ----------
-class RoomInventory {
-
-    private Map<String, Integer> inventory = new HashMap<>();
-
-    public RoomInventory() {
-        inventory.put("Single Room", 2);
-        inventory.put("Double Room", 1);
-        inventory.put("Suite Room", 1);
+    public Service(String name, double cost) {
+        this.name = name;
+        this.cost = cost;
     }
 
-    public int getAvailability(String roomType) {
-        return inventory.getOrDefault(roomType, 0);
-    }
-
-    public void decrement(String roomType) {
-        inventory.put(roomType, getAvailability(roomType) - 1);
+    @Override
+    public String toString() {
+        return name + " (₹" + cost + ")";
     }
 }
 
@@ -47,68 +32,49 @@ public class BookMyStay {
     public static void main(String[] args) {
 
         System.out.println("=== Book My Stay App ===");
-        System.out.println("Hotel Booking System v6.0\n");
+        System.out.println("Hotel Booking System v7.0\n");
 
-        // Queue (UC5)
-        Queue<Reservation> bookingQueue = new LinkedList<>();
-        bookingQueue.add(new Reservation("Alice", "Single Room"));
-        bookingQueue.add(new Reservation("Bob", "Single Room"));
-        bookingQueue.add(new Reservation("Charlie", "Single Room")); // extra request
-        bookingQueue.add(new Reservation("David", "Suite Room"));
+        // Map: Reservation ID → List of Services
+        Map<String, List<Service>> serviceMap = new HashMap<>();
 
-        // Inventory
-        RoomInventory inventory = new RoomInventory();
+        // Sample reservation IDs (from UC6)
+        String res1 = "RES101";
+        String res2 = "RES102";
 
-        // Track allocated room IDs
-        Set<String> allocatedRoomIds = new HashSet<>();
+        // Create services
+        Service breakfast = new Service("Breakfast", 500);
+        Service wifi = new Service("WiFi", 200);
+        Service spa = new Service("Spa", 1500);
 
-        // Map room type → allocated IDs
-        Map<String, Set<String>> allocationMap = new HashMap<>();
+        // Add services to RES101
+        serviceMap.putIfAbsent(res1, new ArrayList<>());
+        serviceMap.get(res1).add(breakfast);
+        serviceMap.get(res1).add(wifi);
 
-        int idCounter = 1;
+        // Add services to RES102
+        serviceMap.putIfAbsent(res2, new ArrayList<>());
+        serviceMap.get(res2).add(spa);
 
-        System.out.println("Processing Booking Requests...\n");
+        // Display services + cost
+        System.out.println("Add-On Services for Reservations:\n");
 
-        while (!bookingQueue.isEmpty()) {
+        for (Map.Entry<String, List<Service>> entry : serviceMap.entrySet()) {
 
-            Reservation request = bookingQueue.poll();
-            String type = request.roomType;
+            String reservationId = entry.getKey();
+            List<Service> services = entry.getValue();
 
-            if (inventory.getAvailability(type) > 0) {
+            System.out.println("Reservation ID: " + reservationId);
 
-                // Generate unique room ID
-                String roomId = type.replace(" ", "").substring(0, 2).toUpperCase() + idCounter++;
+            double totalCost = 0;
 
-                // Ensure uniqueness
-                if (!allocatedRoomIds.contains(roomId)) {
-                    allocatedRoomIds.add(roomId);
-
-                    // Map allocation
-                    allocationMap.putIfAbsent(type, new HashSet<>());
-                    allocationMap.get(type).add(roomId);
-
-                    // Update inventory
-                    inventory.decrement(type);
-
-                    // Confirm booking
-                    System.out.println("Booking Confirmed:");
-                    System.out.println("Guest: " + request.guestName);
-                    System.out.println("Room Type: " + type);
-                    System.out.println("Room ID: " + roomId + "\n");
-                }
-
-            } else {
-                System.out.println("Booking Failed (No Availability): " +
-                        request.guestName + " → " + type + "\n");
+            for (Service s : services) {
+                System.out.println(" - " + s);
+                totalCost += s.cost;
             }
+
+            System.out.println("Total Add-On Cost: ₹" + totalCost + "\n");
         }
 
-        // Final allocation summary
-        System.out.println("Final Allocation Summary:");
-        for (Map.Entry<String, Set<String>> entry : allocationMap.entrySet()) {
-            System.out.println(entry.getKey() + " → " + entry.getValue());
-        }
-
-        System.out.println("\nSystem ready for further operations...");
+        System.out.println("System ready for further operations...");
     }
 }
